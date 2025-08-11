@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>LUVO Photography</title>
+
+<!-- Fonts -->
+<link
+  href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Poppins&display=swap"
+  rel="stylesheet"
+/>
+
+<style>
+  /* Reset */
+  *, *::before, *::after {
+    box-sizing: border-box;
+  }
+  html, body {
+    margin: 0; padding: 0;
+    height: 100%;
+    background: #000;
+    font-family: 'Poppins', sans-serif;
+    color: white;
+    scroll-behavior: smooth;
+  }
+  body {
+    position: relative;
+    min-height: 100vh;
+  }
+  a {
+    color: inherit;
+    text-decoration: none;
+    cursor: pointer;
+    transition: color 0.25s ease;
+  }
+  a:hover, a:focus {
+    color: #ddd;
+    outline: none;
+  }
+  button {
+    font-family: inherit;
+    font-size: 1rem;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    color: inherit;
+    transition: color 0.25s ease;
+  }
+  button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
+    outline: 2px solid rgba(255 255 255 / 0.5);
+    outline-offset: 2px;
+  }
+  /* Rounded corners consistent */
+  .rounded {
+    border-radius: 12px;
+  }
+
+  /* Noise background */
+  body::before {
+    content: "";
+    pointer-events: none;
+    position: fixed;
+    inset: 0;
+    background: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACAAAAAgCAQAAABAfUpiAAAAtklEQVRIie2WQQ6CMBCFv8StXJ4yHQFvDcLiiS9PghJKRZpJRfCEi+Cd87JIO0wsd/jcAC+KBF7BvOwYQZn3ebACgVJbwYwYgxq8WkcXbBbCkIbTxwl5BimFEUMh+3O6CGJJAcTwyXKq+y35juEI2c6ZRXwFvB0GUpgihqwRZAN6TPg0s5ZyJoAIU/YhIk3vDbIarX4h0dBaMAq2Df0U68smg5Sdvji64+mD8HxHgWzIwB9zhkvtshs3dbibp8BdsEzxX+j2pDMxXYd9QAAAABJRU5ErkJggg==') repeat;
+    opacity: 0.1;
+    mix-blend-mode: overlay;
+    z-index: 0;
+  }
+
+  /* Header */
+  header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0 0 0 / 0.55);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 1.5rem;
+    height: 56px;
+    z-index: 10;
+    border-radius: 0 0 12px 12px;
+    transition: height 0.4s cubic-bezier(0.4,0,0.2,1);
+    overflow: visible;
+  }
+
+  header.expanded {
+    /* will be toggled to fit mobile menu */
+    height: auto;
+    padding-bottom: 1rem;
+    flex-wrap: wrap;
+    gap: 1rem;
+  }
+
+  .brand {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 2rem;
+    letter-spacing: 0.18em;
+    user-select: none;
+    line-height: 1;
+  }
+
+  /* Desktop nav */
+  nav.desktop-nav {
+    display: flex;
+    gap: 2rem;
+    font-weight: 600;
+  }
+  nav.desktop-nav a {
+    font-size: 1rem;
+    padding: 0.5rem 0;
+  }
+  nav.desktop-nav a:hover,
+  nav.desktop-nav a:focus {
+    color: #bbb;
+  }
+
+  /* Hamburger menu button - mobile only */
+  .hamburger-btn {
+    position: relative;
+    width: 33px;
+    height: 22px; /* 3 lines 4px height + 7px gap */
+    display: none;
+    flex-direction: column;
+    justify-content: space-between;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    padding: 0;
+    margin-left: auto;
+    user-select: none;
+  }
+  .hamburger-btn:focus-visible {
+    outline-offset: 3px;
+  }
+  .hamburger-line {
+    width: 33px;
+    height: 3.5px;
+    background: white;
+    border-radius: 12px;
+    transition:
+      transform 0.4s ease,
+      opacity 0.3s ease;
+    transform-origin: center;
+  }
+
+  /* Hamburger open - lines transform to X */
+  .hamburger-btn[aria-expanded="true"] .line1 {
+    transform: translateY(9.5px) rotate(45deg);
+  }
+  .hamburger-btn[aria-expanded="true"] .line2 {
+    opacity: 0;
+  }
+  .hamburger-btn[aria-expanded="true"] .line3 {
+    transform: translateY(-9.5px) rotate(-45deg);
+  }
+
+  /* Mobile nav panel */
+  nav.mobile-nav {
+    background: rgba(0 0 0 / 0.55);
+    backdrop-filter: blur(8px);
+    border-radius: 12px;
+    width: 100%;
+    overflow: hidden;
+    max-height: 0;
+    opacity: 0;
+    transition:
+      max-height 0.4s cubic-bezier(0.4,0,0.2,1),
+      opacity 0.4s ease;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-left: 1rem;
+  }
+  nav.mobile-nav.open {
+    opacity: 1;
+    max-height: 400px; /* enough for 5 links, adjust if needed */
+  }
+  nav.mobile-nav a {
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    padding: 0.5rem 0;
+    user-select: none;
+    transition: color 0.25s ease;
+  }
+  nav.mobile-nav a:hover,
+  nav.mobile-nav a:focus {
+    color: #ddd;
+  }
+
+  /* Sections common styling */
+  section {
+    padding: 6rem 1.5rem 4rem;
+    max-width: 960px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  section:first-of-type {
+    padding-top: 8rem;
+  }
+
+  /* Hero */
+  #hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+    position: relative;
+    z-index: 1;
+  }
+  #hero h1 {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 6rem;
+    margin: 0 0 0.5rem 0;
+    user-select: none;
+    line-height: 1;
+  }
+  #hero p {
+    font-size: 1.6rem;
+    margin: 0 0 2rem 0;
+    font-weight: 500;
+    color: #ccc;
+    max-width: 480px;
+  }
+  #hero button.cta-btn {
+    font-size: 1.25rem;
+    font-weight: 600;
+    padding: 0.8rem 2.5rem;
+    background: rgba(255 255 255 / 0.15);
+    border: 1.5px solid rgba(255 255 255 / 0.4);
+    color: white;
+    border-radius: 12px;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+    user-select: none;
+  }
+  #hero button.cta-btn:hover,
+  #hero button.cta-btn:focus {
+    background: rgba(255 255 255 / 0.3);
+    border-color: white;
+  }
+
+  /* Services */
+  #services h2 {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    user-select: none;
+    text-align: center;
+  }
+  #services ul {
+    list-style: none;
+    padding: 0;
+    margin: 0 auto;
+    max-width: 600px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+  }
+  #services ul li {
+    background: rgba(255 255 255 / 0.07);
+    padding: 1rem 1.5rem;
+    border-radius: 12px;
+    flex: 1 1 40%;
+    max-width: 45%;
+    font-weight: 600;
+    color: #eee;
+    text-align: center;
+    user-select: none;
+    transition: background-color 0.3s ease;
+  }
+  #services ul li:hover,
+  #services ul li:focus-within {
+    background: rgba(255 255 255 / 0.15);
+  }
+
+  /* Portfolio */
+  #portfolio h2 {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    user-select: none;
+    text-align: center;
+  }
+  #portfolio .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
+    max-width: 960px;
+    margin: 0 auto;
+  }
+  #portfolio .item {
+    position: relative;
+    aspect-ratio: 4 / 3;
+    border-radius: 12px;
+    background-size: cover;
+    background-position: center;
+    cursor: pointer;
+    box-shadow: 0 0 4px rgba(255 255 255 / 0.12);
+    transition:
+      box-shadow 0.3s ease,
+      transform 0.3s ease;
+    will-change: transform;
+  }
+  #portfolio .item:hover,
+  #portfolio .item:focus-visible {
+    box-shadow: 0 4px 15px rgba(255 255 255 / 0.25);
+    transform: scale(1.04);
+    outline: none;
+  }
+
+  /* About */
+  #about h2 {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    user-select: none;
+    text-align: center;
+  }
+  #about p {
+    font-size: 1.1rem;
+    max-width: 720px;
+    margin: 0 auto;
+    line-height: 1.6;
+    color: #ddd;
+    user-select: text;
+  }
+
+  /* Contact */
+  #contact h2 {
+    font-family: 'Cinzel', serif;
+    font-weight: 700;
+    font-size: 3rem;
+    margin-bottom: 1.5rem;
+    user-select: none;
+    text-align: center;
+  }
+  form {
+    max-width: 480px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  input[type="text"],
+  input[type="email"],
+  textarea {
+    padding: 0.75rem 1rem;
+    font-size: 1rem;
+    font-family: 'Poppins', sans-serif;
+    border: none;
+    border-radius: 12px;
+    background: rgba(255 255 255 / 0.1);
+    color: white;
+    resize: vertical;
+    transition: background-color 0.25s ease;
+  }
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  textarea:focus {
+    background: rgba(255 255 255 / 0.25);
+    outline: none;
+  }
+  textarea {
+    min-height: 120px;
+  }
+  button[type="submit"] {
+    align-self: flex-start;
+    background: rgba(255 255 255 / 0.15);
+    border: 1.5px solid rgba(255 255 255 / 0.4);
+    padding: 0.8rem 2.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    font-size: 1.2rem;
+    color: white;
+    user-select: none;
+    transition: background-color 0.3s ease, border-color 0.3s ease;
+  }
+  button[type="submit"]:hover,
+  button[type="submit"]:focus {
+    background: rgba(255 255 255 / 0.3);
+    border-color: white;
+    outline: none;
+  }
+
+  /* Footer */
+  footer {
+    padding: 2rem 1.5rem;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #666;
+    user-select: none;
+    background: rgba(255 255 255 / 0.04);
+    border-top: 1px solid rgba(255 255 255 / 0.08);
+    margin-top: 3rem;
+  }
+
+  /* Responsive */
+  @media (max-width: 768px) {
+    nav.desktop-nav {
+      display: none;
+    }
+    .hamburger-btn {
+      display: flex;
+    }
+    header.expanded {
+      height: auto;
+      padding-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    nav.mobile-nav {
+      display: flex;
+    }
+  }
+  @media (min-width: 769px) {
+    nav.mobile-nav {
+      display: none !important;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header role="banner" aria-label="Primary navigation" id="header">
+  <div class="brand" tabindex="0">LUVO</div>
+
+  <nav class="desktop-nav" role="navigation" aria-label="Primary desktop navigation">
+    <a href="#hero" tabindex="0">Home</a>
+    <a href="#services" tabindex="0">Services</a>
+    <a href="#portfolio" tabindex="0">Portfolio</a>
+    <a href="#about" tabindex="0">About</a>
+    <a href="#contact" tabindex="0">Contact</a>
+  </nav>
+
+  <button class="hamburger-btn" aria-label="Toggle menu" aria-expanded="false" aria-controls="mobile-menu" id="hamburgerBtn">
+    <span class="hamburger-line line1"></span>
+    <span class="hamburger-line line2"></span>
+    <span class="hamburger-line line3"></span>
+  </button>
+
+  <nav class="mobile-nav" id="mobile-menu" role="navigation" aria-label="Mobile menu" hidden>
+    <a href="#hero" tabindex="-1">Home</a>
+    <a href="#services" tabindex="-1">Services</a>
+    <a href="#portfolio" tabindex="-1">Portfolio</a>
+    <a href="#about" tabindex="-1">About</a>
+    <a href="#contact" tabindex="-1">Contact</a>
+  </nav>
+</header>
+
+<main>
+  <section id="hero" role="region" aria-label="Hero section">
+    <h1>LUVO</h1>
+    <p>Your vision captured in timeless moments.</p>
+    <button class="cta-btn" aria-label="View portfolio" onclick="document.getElementById('portfolio').scrollIntoView({behavior:'smooth'})">View Portfolio</button>
+    <canvas id="particles" aria-hidden="true" style="position:absolute; inset:0; z-index:0;"></canvas>
+  </section>
+
+  <section id="services" role="region" aria-label="Photography Services">
+    <h2>Services</h2>
+    <ul>
+      <li tabindex="0">Wedding Photography</li>
+      <li tabindex="0">Portrait Sessions</li>
+      <li tabindex="0">Event Coverage</li>
+      <li tabindex="0">Commercial Shoots</li>
+    </ul>
+  </section>
+
+  <section id="portfolio" role="region" aria-label="Portfolio">
+    <h2>Portfolio</h2>
+    <div class="grid">
+      <div class="item rounded" tabindex="0" style="background-image: url('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=600&q=80');" aria-label="Portfolio item 1"></div>
+      <div class="item rounded" tabindex="0" style="background-image: url('https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&w=600&q=80');" aria-label="Portfolio item 2"></div>
+      <div class="item rounded" tabindex="0" style="background-image: url('https://images.unsplash.com/photo-1470770841072-f978cf4d019e?auto=format&fit=crop&w=600&q=80');" aria-label="Portfolio item 3"></div>
+      <div class="item rounded" tabindex="0" style="background-image: url('https://images.unsplash.com/photo-1499084732479-de2c02d45fc4?auto=format&fit=crop&w=600&q=80');" aria-label="Portfolio item 4"></div>
+    </div>
+  </section>
+
+  <section id="about" role="region" aria-label="About LUVO">
+    <h2>About</h2>
+    <p>
+      LUVO Photography is dedicated to capturing the essence of your most cherished moments with a modern yet timeless style. We blend creativity and professionalism to deliver stunning visuals that tell your unique story.
+    </p>
+  </section>
+
+  <section id="contact" role="region" aria-label="Contact form">
+    <h2>Contact</h2>
+    <form id="contactForm" aria-describedby="contactDesc" novalidate>
+      <input type="text" name="name" placeholder="Name" aria-label="Name" required />
+      <input type="email" name="email" placeholder="Email" aria-label="Email" required />
+      <textarea name="message" placeholder="Message" aria-label="Message" required></textarea>
+      <button type="submit" aria-label="Submit contact form">Submit</button>
+    </form>
+    <p id="contactDesc" style="position:absolute; left:-9999px; top:auto; width:1px; height:1px; overflow:hidden;">
+      Fill the contact form to reach LUVO Photography.
+    </p>
+  </section>
+</main>
+
+<footer role="contentinfo">
+  &copy; 2025 LUVO Photography. All rights reserved.
+</footer>
+
+<script>
+  // Menu toggle with smooth height and opacity animation
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const mobileMenu = document.getElementById('mobile-menu');
+  const header = document.getElementById('header');
+  let isOpen = false;
+
+  // Set initial max-height to 0 for closed menu
+  mobileMenu.style.maxHeight = '0px';
+
+  function openMenu() {
+    mobileMenu.hidden = false;
+    mobileMenu.classList.add('open');
+    header.classList.add('expanded');
+
+    // Allow height to grow dynamically by removing maxHeight then setting a computed maxHeight
+    mobileMenu.style.maxHeight = 'none'; // Temporarily remove max-height
+    const scrollHeight = mobileMenu.scrollHeight;
+    mobileMenu.style.maxHeight = '0px'; // Reset to 0 to trigger animation
+
+    // Force repaint for transition
+    void mobileMenu.offsetWidth;
+
+    mobileMenu.style.maxHeight = scrollHeight + 'px';
+
+    // Update aria
+    hamburgerBtn.setAttribute('aria-expanded', 'true');
+
+    // Make links keyboard focusable
+    mobileMenu.querySelectorAll('a').forEach(a => a.setAttribute('tabindex', '0'));
+  }
+
+  function closeMenu() {
+    // Animate height collapse
+    mobileMenu.style.maxHeight = mobileMenu.scrollHeight + 'px';
+    // Force repaint for transition
+    void mobileMenu.offsetWidth;
+    mobileMenu.style.maxHeight = '0px';
+    mobileMenu.classList.remove('open');
+    header.classList.remove('expanded');
+
+    hamburgerBtn.setAttribute('aria-expanded', 'false');
+
+    // Remove keyboard focusability
+    mobileMenu.querySelectorAll('a').forEach(a => a.setAttribute('tabindex', '-1'));
+
+    // After transition, hide nav to remove from screen reader and tab order
+    mobileMenu.addEventListener('transitionend', function handler(e) {
+      if (e.propertyName === 'max-height' && !mobileMenu.classList.contains('open')) {
+        mobileMenu.hidden = true;
+        mobileMenu.removeEventListener('transitionend', handler);
+      }
+    });
+  }
+
+  hamburgerBtn.addEventListener('click', () => {
+    isOpen = !isOpen;
+    if (isOpen) {
+      openMenu();
+    } else {
+      closeMenu();
+    }
+  });
+
+  // Keyboard: close menu if focus moves outside
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && isOpen) {
+      isOpen = false;
+      closeMenu();
+      hamburgerBtn.focus();
+    }
+  });
+
+  // Smooth scroll on nav links (both desktop and mobile)
+  document.querySelectorAll('nav a[href^="#"]').forEach(link => {
+    link.addEventListener('click', e => {
+      e.preventDefault();
+      const targetID = link.getAttribute('href').substring(1);
+      const target = document.getElementById(targetID);
+      if (target) {
+        target.scrollIntoView({ behavior: 'smooth' });
+        if (isOpen) {
+          // Close mobile menu after click
+          isOpen = false;
+          closeMenu();
+        }
+      }
+    });
+  });
+
+
+  // PARTICLES.JS style effect in hero behind text
+  (() => {
+    const canvas = document.getElementById('particles');
+    const ctx = canvas.getContext('2d');
+    let width, height, particles;
+
+    function init() {
+      resize();
+      particles = [];
+      const count = Math.floor((width * height) / 10000); // density based on area
+      for (let i = 0; i < count; i++) {
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          radius: Math.random() * 1.2 + 0.6,
+          speedX: (Math.random() - 0.5) * 0.15,
+          speedY: (Math.random() - 0.5) * 0.15,
+          opacity: Math.random() * 0.3 + 0.15,
+        });
+      }
+      animate();
+    }
+
+    function resize() {
+      width = canvas.clientWidth;
+      height = canvas.clientHeight;
+      canvas.width = width * devicePixelRatio;
+      canvas.height = height * devicePixelRatio;
+      ctx.scale(devicePixelRatio, devicePixelRatio);
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+      particles.forEach(p => {
+        p.x += p.speedX;
+        p.y += p.speedY;
+
+        if (p.x < 0) p.x = width;
+        else if (p.x > width) p.x = 0;
+        if (p.y < 0) p.y = height;
+        else if (p.y > height) p.y = 0;
+
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.radius, 0, 2 * Math.PI);
+        ctx.fillStyle = `rgba(255,255,255,${p.opacity})`;
+        ctx.fill();
+      });
+      requestAnimationFrame(animate);
+    }
+
+    window.addEventListener('resize', () => {
+      resize();
+    });
+
+    // Initialize
+    init();
+  })();
+
+  // Contact form submission dummy handler (just prevent actual submit)
+  document.getElementById('contactForm').addEventListener('submit', e => {
+    e.preventDefault();
+    alert('Thank you for contacting LUVO Photography! We will get back to you shortly.');
+    e.target.reset();
+  });
+</script>
+</body>
+</html>
